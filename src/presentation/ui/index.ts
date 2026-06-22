@@ -12,5 +12,13 @@ export type {CardProps} from './Card';
 
 export {GenesisLogo} from './GenesisLogo';
 
-export {LanguageToggle} from './LanguageToggle';
-export type {LanguageToggleProps} from './LanguageToggle';
+export {
+  LanguageToggle,
+  LanguageToggleOverlay,
+  languageToggleMetrics,
+  languageToggleStyles,
+} from './LanguageToggle';
+export type {
+  LanguageToggleOverlayProps,
+  LanguageToggleProps,
+} from './LanguageToggle';

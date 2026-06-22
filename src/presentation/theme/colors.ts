@@ -50,6 +50,7 @@ export const colors: GenesisColorPalette = {
     charcoal: '#1A1A1A',
     black: '#0D0D0D',
     border: '#2A2A2A',
+    muted: '#6B6B6B',
   },
 
   semantic: {

@@ -1,7 +1,6 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import Animated, {FadeIn, FadeInDown} from 'react-native-reanimated';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Svg, {
   Circle,
   Defs,
@@ -12,9 +11,9 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 
-import type {AppLanguage} from '../../../core/types/locale';
+import {useLanguage} from '../../../core/context';
+import {withLocalizedTypography} from '../../i18n';
 import {GenesisLogo} from '../../ui/GenesisLogo';
-import {LanguageToggle} from '../../ui/LanguageToggle';
 import {colors, fontFamilies, spacing, typography} from '../../theme';
 import {WelcomeBackground} from './WelcomeBackground';
 
@@ -79,29 +78,14 @@ const copy = {
 } as const;
 
 export function WelcomeScreen({onExplore, onChat}: WelcomeScreenProps) {
-  const [language, setLanguage] = useState<AppLanguage>('en');
-  const insets = useSafeAreaInsets();
-  const isArabic = language === 'ar';
+  const {language, isArabic} = useLanguage();
   const text = copy[language];
-
-  const handleLanguageChange = (next: AppLanguage) => {
-    setLanguage(next);
-  };
 
   return (
     <View style={styles.root}>
       <WelcomeBackground />
 
-      <Animated.View
-        entering={FadeIn.duration(600)}
-        style={[
-          styles.languageToggle,
-          {top: insets.top + spacing.md, right: insets.right + spacing.lg},
-        ]}>
-        <LanguageToggle language={language} onChange={handleLanguageChange} />
-      </Animated.View>
-
-      <View style={[styles.content, {paddingBottom: insets.bottom + spacing.xl}]}>
+      <View style={styles.content}>
         <Animated.View
           entering={FadeInDown.duration(800).delay(0)}
           style={styles.logoBlock}>
@@ -127,7 +111,12 @@ export function WelcomeScreen({onExplore, onChat}: WelcomeScreenProps) {
           entering={FadeInDown.duration(800).delay(400)}
           style={styles.headlineBlock}>
           {isArabic ? (
-            <Text style={[styles.headline, styles.rtlText]}>{text.headlineSingle}</Text>
+            <Text
+              style={withLocalizedTypography(styles.headline, language, {
+                textAlign: 'center',
+              })}>
+              {text.headlineSingle}
+            </Text>
           ) : (
             <>
               <Text style={styles.headline}>{text.headlineLine1}</Text>
@@ -138,7 +127,9 @@ export function WelcomeScreen({onExplore, onChat}: WelcomeScreenProps) {
 
         <Animated.Text
           entering={FadeIn.duration(800).delay(600)}
-          style={[styles.subtitle, isArabic && styles.rtlText]}>
+          style={withLocalizedTypography(styles.subtitle, language, {
+            textAlign: 'center',
+          })}>
           {text.subtitle}
         </Animated.Text>
 
@@ -152,7 +143,12 @@ export function WelcomeScreen({onExplore, onChat}: WelcomeScreenProps) {
               styles.primaryButton,
               pressed && styles.buttonPressed,
             ]}>
-            <Text style={styles.primaryButtonLabel}>{text.explore}</Text>
+            <Text
+              style={withLocalizedTypography(styles.primaryButtonLabel, language, {
+                textAlign: 'center',
+              })}>
+              {text.explore}
+            </Text>
           </Pressable>
 
           <Pressable
@@ -163,14 +159,22 @@ export function WelcomeScreen({onExplore, onChat}: WelcomeScreenProps) {
               pressed && styles.buttonPressed,
             ]}>
             <MicIcon />
-            <Text style={styles.secondaryButtonLabel}>{text.chat}</Text>
+            <Text
+              style={withLocalizedTypography(styles.secondaryButtonLabel, language, {
+                textAlign: 'center',
+              })}>
+              {text.chat}
+            </Text>
           </Pressable>
         </Animated.View>
 
         <Animated.View
           entering={FadeIn.duration(1000).delay(1200)}
           style={styles.footer}>
-          <Text style={[styles.availability, isArabic && styles.rtlText]}>
+          <Text
+            style={withLocalizedTypography(styles.availability, language, {
+              textAlign: 'center',
+            })}>
             {text.availability}
           </Text>
           <View style={styles.footerDots}>
@@ -190,15 +194,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.black,
     overflow: 'hidden',
   },
-  languageToggle: {
-    position: 'absolute',
-    zIndex: 20,
-  },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
     zIndex: 10,
   },
   logoBlock: {
@@ -226,13 +227,8 @@ const styles = StyleSheet.create({
   subtitle: {
     ...typography.overline,
     color: colors.ink.muted,
-    textAlign: 'center',
     marginBottom: spacing.section,
     fontWeight: '300',
-  },
-  rtlText: {
-    writingDirection: 'rtl',
-    textAlign: 'center',
   },
   actions: {
     width: '100%',
@@ -288,7 +284,6 @@ const styles = StyleSheet.create({
     color: colors.ink.muted,
     letterSpacing: 3,
     textTransform: 'uppercase',
-    textAlign: 'center',
   },
   footerDots: {
     flexDirection: 'row',

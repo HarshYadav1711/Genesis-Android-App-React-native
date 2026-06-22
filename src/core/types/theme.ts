@@ -43,6 +43,7 @@ export type GenesisColorPalette = {
     readonly charcoal: ColorToken;
     readonly black: ColorToken;
     readonly border: ColorToken;
+    readonly muted: ColorToken;
   };
   readonly semantic: {
     readonly success: ColorToken;
@@ -60,6 +61,7 @@ export type GenesisFontFamily = {
   readonly heading: string;
   readonly body: string;
   readonly mono: string;
+  readonly arabic: string;
 };
 
 export type GenesisTypographyScale = {

@@ -1,68 +1,110 @@
 import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
+import {useLanguage} from '../../../core/context';
 import type {AppLanguage} from '../../../core/types/locale';
-import {colors} from '../../theme';
+import {spacing} from '../../theme';
+import {languageToggleStyles} from './languageToggleStyles';
 
 export type LanguageToggleProps = {
-  language: AppLanguage;
-  onChange: (language: AppLanguage) => void;
+  language?: AppLanguage;
+  onChange?: (language: AppLanguage) => void;
 };
 
-export function LanguageToggle({language, onChange}: LanguageToggleProps) {
+type LanguageOptionProps = {
+  flag: string;
+  label: string;
+  isActive: boolean;
+  onPress: () => void;
+};
+
+function LanguageOption({
+  flag,
+  label,
+  isActive,
+  onPress,
+}: LanguageOptionProps) {
   return (
-    <View style={styles.root} accessibilityRole="tablist">
-      <Pressable
-        accessibilityRole="tab"
-        accessibilityState={{selected: language === 'en'}}
-        onPress={() => onChange('en')}
-        style={[styles.option, language === 'en' && styles.optionActive]}>
-        <Text style={styles.flag}>🇬🇧</Text>
-        <Text style={[styles.label, language === 'en' && styles.labelActive]}>EN</Text>
-      </Pressable>
-      <Pressable
-        accessibilityRole="tab"
-        accessibilityState={{selected: language === 'ar'}}
-        onPress={() => onChange('ar')}
-        style={[styles.option, language === 'ar' && styles.optionActive]}>
-        <Text style={styles.flag}>🇦🇪</Text>
-        <Text style={[styles.label, language === 'ar' && styles.labelActive]}>AR</Text>
-      </Pressable>
+    <Pressable
+      accessibilityRole="tab"
+      accessibilityState={{selected: isActive}}
+      onPress={onPress}
+      style={({pressed}) => [
+        languageToggleStyles.option,
+        isActive && languageToggleStyles.optionActive,
+        pressed && languageToggleStyles.optionPressed,
+      ]}>
+      <Text style={languageToggleStyles.flag}>{flag}</Text>
+      <Text
+        style={[
+          languageToggleStyles.label,
+          isActive && languageToggleStyles.labelActive,
+        ]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+export function LanguageToggle({
+  language: languageProp,
+  onChange,
+}: LanguageToggleProps = {}) {
+  const context = useLanguage();
+  const language = languageProp ?? context.language;
+  const setLanguage = onChange ?? context.setLanguage;
+
+  return (
+    <View style={languageToggleStyles.capsule} accessibilityRole="tablist">
+      <LanguageOption
+        flag="🇬🇧"
+        label="EN"
+        isActive={language === 'en'}
+        onPress={() => setLanguage('en')}
+      />
+      <LanguageOption
+        flag="🇦🇪"
+        label="AR"
+        isActive={language === 'ar'}
+        onPress={() => setLanguage('ar')}
+      />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.brand.charcoal,
-    borderWidth: 1,
-    borderColor: colors.brand.border,
-    borderRadius: 9999,
-    padding: 2,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 9999,
-  },
-  optionActive: {
-    backgroundColor: colors.brand.copper,
-  },
-  flag: {
-    fontSize: 12,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-    color: colors.ink.muted,
-  },
-  labelActive: {
-    color: colors.brand.black,
+export type LanguageToggleOverlayProps = {
+  topOffset?: number;
+  rightOffset?: number;
+};
+
+/**
+ * Website placement: fixed top-right capsule, independent of RTL mirroring.
+ */
+export function LanguageToggleOverlay({
+  topOffset = spacing.lg,
+  rightOffset = spacing.lg,
+}: LanguageToggleOverlayProps) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      pointerEvents="box-none"
+      style={[
+        overlayStyles.host,
+        {
+          top: insets.top + topOffset,
+          right: insets.right + rightOffset,
+        },
+      ]}>
+      <LanguageToggle />
+    </View>
+  );
+}
+
+const overlayStyles = StyleSheet.create({
+  host: {
+    position: 'absolute',
+    zIndex: 50,
   },
 });

@@ -1,2 +1,9 @@
-export {LanguageToggle} from './LanguageToggle';
-export type {LanguageToggleProps} from './LanguageToggle';
+export {
+  LanguageToggle,
+  LanguageToggleOverlay,
+} from './LanguageToggle';
+export type {
+  LanguageToggleOverlayProps,
+  LanguageToggleProps,
+} from './LanguageToggle';
+export {languageToggleMetrics, languageToggleStyles} from './languageToggleStyles';

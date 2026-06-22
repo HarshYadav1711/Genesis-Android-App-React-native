@@ -23,6 +23,11 @@ export const fontFamilies: GenesisFontFamily = {
     android: 'monospace',
     default: 'monospace',
   }) as string,
+  arabic: Platform.select({
+    ios: 'NotoSansArabic-Regular',
+    android: 'NotoSansArabic-Regular',
+    default: 'sans-serif',
+  }) as string,
 };
 
 const headingBase: TextStyle = {
