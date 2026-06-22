@@ -3,11 +3,14 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "node scripts/run-android.js",
+    "android:win": "node scripts/run-android.js",
+    "setup:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-windows.ps1",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "node scripts/clean-ide-gradle.js"
   },
   "dependencies": {
     "axios": "^1.18.0",
@@ -16,7 +19,8 @@
     "react-native-gesture-handler": "^3.0.2",
     "react-native-reanimated": "^4.4.1",
     "react-native-safe-area-context": "^5.5.2",
-    "react-native-svg": "^15.15.5"
+    "react-native-svg": "^15.15.5",
+    "react-native-worklets": "^0.9.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
