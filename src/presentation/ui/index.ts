@@ -12,6 +12,9 @@ export type {CardProps} from './Card';
 
 export {GenesisLogo} from './GenesisLogo';
 
+export {VehicleCard} from './VehicleCard';
+export type {VehicleCardProps} from './VehicleCard';
+
 export {
   LanguageToggle,
   LanguageToggleOverlay,
