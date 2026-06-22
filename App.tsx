@@ -1,7 +1,9 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 import {AppProviders} from './src/app';
+import {ChatRepository} from './src/data/chat/chatRepository';
 import type {Vehicle} from './src/domain/vehicle';
+import {GenesisAiOverlay} from './src/presentation/overlay';
 import {
   SpecBoardScreen,
   VehicleExplorerScreen,
@@ -14,6 +16,9 @@ type AppScreen = 'welcome' | 'explorer' | 'specBoard';
 function App() {
   const [screen, setScreen] = useState<AppScreen>('welcome');
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const chatRepository = useMemo(() => new ChatRepository(), []);
 
   const handleExplore = useCallback(() => {
     setScreen('explorer');
@@ -28,8 +33,16 @@ function App() {
     setScreen('explorer');
   }, []);
 
+  const handleOpenGenesisAI = useCallback(() => {
+    setIsChatOpen(true);
+  }, []);
+
   const handleAskGenesisAI = useCallback((_vehicle: Vehicle) => {
-    // Genesis AI overlay will be wired in a follow-up screen.
+    setIsChatOpen(true);
+  }, []);
+
+  const handleCloseGenesisAI = useCallback(() => {
+    setIsChatOpen(false);
   }, []);
 
   const handleTestDrive = useCallback((_vehicle: Vehicle) => {
@@ -38,9 +51,9 @@ function App() {
 
   return (
     <AppProviders>
-      <LanguageToggleOverlay />
+      {!isChatOpen ? <LanguageToggleOverlay /> : null}
       {screen === 'welcome' ? (
-        <WelcomeScreen onExplore={handleExplore} />
+        <WelcomeScreen onExplore={handleExplore} onChat={handleOpenGenesisAI} />
       ) : null}
       {screen === 'explorer' ? (
         <VehicleExplorerScreen onSelectVehicle={handleSelectVehicle} />
@@ -53,6 +66,12 @@ function App() {
           onTestDrive={handleTestDrive}
         />
       ) : null}
+      <GenesisAiOverlay
+        isOpen={isChatOpen}
+        onClose={handleCloseGenesisAI}
+        currentVehicle={screen === 'specBoard' ? selectedVehicle : null}
+        chatRepository={chatRepository}
+      />
     </AppProviders>
   );
 }

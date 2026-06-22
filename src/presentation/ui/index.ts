@@ -31,3 +31,6 @@ export type {
   LanguageToggleOverlayProps,
   LanguageToggleProps,
 } from './LanguageToggle';
+
+export {GenesisAiOverlay, useChatViewModel} from '../overlay';
+export type {GenesisAiOverlayProps} from '../overlay';
