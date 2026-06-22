@@ -1,6 +1,15 @@
 import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
-import Animated, {FadeIn, FadeInDown} from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import Svg, {
   Circle,
   Defs,
@@ -63,7 +72,7 @@ const copy = {
     headlineSingle: '',
     subtitle: 'Crafted for the exceptional',
     explore: 'Explore Our Vehicles',
-    chat: 'Talk To Genesis AI',
+    chat: 'Talk to Genesis AI',
     availability: 'Available in Dubai • Abu Dhabi • Sharjah',
   },
   ar: {
@@ -77,9 +86,32 @@ const copy = {
   },
 } as const;
 
+function FooterDot({delayMs}: {delayMs: number}) {
+  const opacity = useSharedValue(0.3);
+
+  React.useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.3, {duration: 0}),
+        withTiming(1, {duration: 1000}),
+        withTiming(0.3, {duration: 1000}),
+      ),
+      -1,
+      false,
+    );
+  }, [delayMs, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return <Animated.View style={[styles.footerDot, animatedStyle]} />;
+}
+
 export function WelcomeScreen({onExplore, onChat}: WelcomeScreenProps) {
   const {language, isArabic} = useLanguage();
   const text = copy[language];
+  const reducedMotion = useReducedMotion();
 
   return (
     <View style={styles.root}>
@@ -87,7 +119,7 @@ export function WelcomeScreen({onExplore, onChat}: WelcomeScreenProps) {
 
       <View style={styles.content}>
         <Animated.View
-          entering={FadeInDown.duration(800).delay(0)}
+          entering={reducedMotion ? undefined : FadeInDown.duration(800).delay(0)}
           style={styles.logoBlock}>
           <GenesisLogo />
         </Animated.View>
@@ -178,9 +210,19 @@ export function WelcomeScreen({onExplore, onChat}: WelcomeScreenProps) {
             {text.availability}
           </Text>
           <View style={styles.footerDots}>
-            <View style={styles.footerDot} />
-            <View style={styles.footerDot} />
-            <View style={styles.footerDot} />
+            {reducedMotion ? (
+              <>
+                <View style={styles.footerDot} />
+                <View style={styles.footerDot} />
+                <View style={styles.footerDot} />
+              </>
+            ) : (
+              <>
+                <FooterDot delayMs={0} />
+                <FooterDot delayMs={400} />
+                <FooterDot delayMs={800} />
+              </>
+            )}
           </View>
         </Animated.View>
       </View>

@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Dimensions,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,6 +9,7 @@ import {
   Text,
   TextInput,
   View,
+  type ListRenderItem,
 } from 'react-native';
 import Animated, {FadeIn, FadeOut, SlideInRight, SlideOutRight, SlideInLeft, SlideOutLeft} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -16,7 +18,7 @@ import {useLanguage} from '../../app/hooks/useLanguage';
 import {greetingText} from '../../data/chat/mockChatResponses';
 import {ChatRepository} from '../../data/chat/chatRepository';
 import type {Vehicle} from '../../domain/vehicle';
-import type {VoiceState} from '../../domain/chat';
+import type {ChatMessage, VoiceState} from '../../domain/chat';
 import {withLocalizedTypography} from '../i18n/localizedTypography';
 import {AudioVisualizer} from './AudioVisualizer';
 import {ChatBubble} from './ChatBubble';
@@ -63,7 +65,7 @@ export function GenesisAiOverlay({
 }: GenesisAiOverlayProps) {
   const {language, isArabic, isRtl} = useLanguage();
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<ScrollView>(null);
+  const listRef = useRef<FlatList<ChatMessage>>(null);
   const repository = useMemo(
     () => chatRepository ?? new ChatRepository(),
     [chatRepository],
@@ -184,15 +186,57 @@ export function GenesisAiOverlay({
     simulateSpeaking();
   }, [currentVehicle, hasGreeted, isOpen, language, simulateSpeaking]);
 
+  const scrollToLatest = useCallback(() => {
+    listRef.current?.scrollToEnd({animated: true});
+  }, []);
+
   useEffect(() => {
     if (!isOpen) {
       return;
     }
-    const timer = setTimeout(() => {
-      scrollRef.current?.scrollToEnd({animated: true});
-    }, 100);
+    const timer = setTimeout(scrollToLatest, 100);
     return () => clearTimeout(timer);
-  }, [chat.messages.length, isOpen, showLeadForm, chat.isLoading]);
+  }, [chat.messages.length, isOpen, showLeadForm, chat.isLoading, scrollToLatest]);
+
+  const renderMessage: ListRenderItem<ChatMessage> = useCallback(
+    ({item}) => <ChatBubble message={item} language={language} />,
+    [language],
+  );
+
+  const messageKeyExtractor = useCallback((item: ChatMessage) => item.id, []);
+
+  const listFooter = useMemo(
+    () => (
+      <>
+        {showLeadForm && !leadCaptured ? (
+          <LeadCaptureForm
+            conversationId={chat.conversationId}
+            profile={chat.profile}
+            language={language}
+            chatRepository={repository}
+            onComplete={name => {
+              setShowLeadForm(false);
+              setLeadCaptured(true);
+              if (name) {
+                simulateSpeaking();
+              }
+            }}
+          />
+        ) : null}
+        {chat.isLoading ? <ThinkingBubble /> : null}
+      </>
+    ),
+    [
+      chat.conversationId,
+      chat.isLoading,
+      chat.profile,
+      language,
+      leadCaptured,
+      repository,
+      showLeadForm,
+      simulateSpeaking,
+    ],
+  );
 
   if (!isOpen) {
     return null;
@@ -269,34 +313,22 @@ export function GenesisAiOverlay({
             <AudioVisualizer state={effectiveVoiceState} language={language} />
           </View>
 
-          <ScrollView
-            ref={scrollRef}
+          <FlatList
+            ref={listRef}
+            data={chat.messages}
+            keyExtractor={messageKeyExtractor}
+            renderItem={renderMessage}
             style={overlayStyles.messageList}
             contentContainerStyle={overlayStyles.messageListContent}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
-            {chat.messages.map(message => (
-              <ChatBubble key={message.id} message={message} language={language} />
-            ))}
-
-            {showLeadForm && !leadCaptured ? (
-              <LeadCaptureForm
-                conversationId={chat.conversationId}
-                profile={chat.profile}
-                language={language}
-                chatRepository={repository}
-                onComplete={name => {
-                  setShowLeadForm(false);
-                  setLeadCaptured(true);
-                  if (name) {
-                    simulateSpeaking();
-                  }
-                }}
-              />
-            ) : null}
-
-            {chat.isLoading ? <ThinkingBubble /> : null}
-          </ScrollView>
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={12}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            removeClippedSubviews={Platform.OS === 'android'}
+            ListFooterComponent={listFooter}
+            onContentSizeChange={scrollToLatest}
+          />
 
           {micError ? (
             <View style={overlayStyles.micErrorBanner}>

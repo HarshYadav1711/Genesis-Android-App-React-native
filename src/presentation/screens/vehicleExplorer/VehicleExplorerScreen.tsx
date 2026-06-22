@@ -1,13 +1,14 @@
-import React, {useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {
   FlatList,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
   View,
 } from 'react-native';
-import Animated, {FadeIn, FadeInDown} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeInDown, useReducedMotion} from 'react-native-reanimated';
 
 import {vehicles} from '../../../data';
 import {useLanguage} from '../../../core/context';
@@ -40,12 +41,13 @@ function getColumnCount(width: number): number {
   return 1;
 }
 
-function ExplorerHeader() {
+const ExplorerHeader = memo(function ExplorerHeader() {
   const {language, isArabic} = useLanguage();
+  const reducedMotion = useReducedMotion();
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(500)}
+      entering={reducedMotion ? undefined : FadeInDown.duration(500)}
       style={styles.header}>
       <Text
         style={withLocalizedTypography(styles.eyebrow, language, {
@@ -61,19 +63,24 @@ function ExplorerHeader() {
       </Text>
     </Animated.View>
   );
-}
+});
 
-function FilterChips({
-  activeFilter,
-  onFilterChange,
-}: {
+type FilterChipsProps = {
   activeFilter: VehicleFilterId;
   onFilterChange: (filterId: VehicleFilterId) => void;
-}) {
+};
+
+const FilterChips = memo(function FilterChips({
+  activeFilter,
+  onFilterChange,
+}: FilterChipsProps) {
   const {language} = useLanguage();
+  const reducedMotion = useReducedMotion();
 
   return (
-    <Animated.View entering={FadeIn.duration(500).delay(200)} style={styles.filters}>
+    <Animated.View
+      entering={reducedMotion ? undefined : FadeIn.duration(500).delay(200)}
+      style={styles.filters}>
       {VEHICLE_FILTERS.map(filter => {
         const isActive = activeFilter === filter.id;
 
@@ -100,14 +107,15 @@ function FilterChips({
       })}
     </Animated.View>
   );
-}
+});
 
-function ExplorerFooter() {
+const ExplorerFooter = memo(function ExplorerFooter() {
   const {language, isArabic} = useLanguage();
+  const reducedMotion = useReducedMotion();
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(500).delay(400)}
+      entering={reducedMotion ? undefined : FadeInDown.duration(500).delay(400)}
       style={[styles.footer, isArabic && styles.footerRtl]}>
       <View style={[styles.statsRow, isArabic && styles.statsRowRtl]}>
         <View style={styles.stat}>
@@ -149,7 +157,7 @@ function ExplorerFooter() {
       </Text>
     </Animated.View>
   );
-}
+});
 
 export function VehicleExplorerScreen({
   onSelectVehicle,
@@ -168,6 +176,42 @@ export function VehicleExplorerScreen({
     [activeFilter],
   );
 
+  const handleSelectVehicle = useCallback(
+    (vehicle: Vehicle) => {
+      onSelectVehicle?.(vehicle);
+    },
+    [onSelectVehicle],
+  );
+
+  const keyExtractor = useCallback((item: Vehicle) => item.id, []);
+
+  const renderItem = useCallback(
+    ({item, index}: {item: Vehicle; index: number}) => (
+      <VehicleCard
+        vehicle={item}
+        index={index}
+        language={language}
+        width={cardWidth}
+        onPress={handleSelectVehicle}
+      />
+    ),
+    [cardWidth, handleSelectVehicle, language],
+  );
+
+  const listEmptyComponent = useMemo(
+    () => (
+      <View style={styles.emptyState}>
+        <Text
+          style={withLocalizedTypography(styles.emptyText, language, {
+            textAlign: 'center',
+          })}>
+          {isArabic ? 'لا توجد سيارات' : 'No vehicles found'}
+        </Text>
+      </View>
+    ),
+    [isArabic, language],
+  );
+
   return (
     <SafeAreaWrapper style={styles.root}>
       <View style={styles.headerSection}>
@@ -182,29 +226,17 @@ export function VehicleExplorerScreen({
         key={`vehicle-grid-${numColumns}`}
         data={filteredVehicles}
         numColumns={numColumns}
-        keyExtractor={item => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={Platform.OS === 'android'}
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+        updateCellsBatchingPeriod={50}
         contentContainerStyle={styles.gridContent}
         columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text
-              style={withLocalizedTypography(styles.emptyText, language, {
-                textAlign: 'center',
-              })}>
-              {isArabic ? 'لا توجد سيارات' : 'No vehicles found'}
-            </Text>
-          </View>
-        }
-        renderItem={({item, index}) => (
-          <VehicleCard
-            vehicle={item}
-            index={index}
-            language={language}
-            width={cardWidth}
-            onPress={vehicle => onSelectVehicle?.(vehicle)}
-          />
-        )}
+        ListEmptyComponent={listEmptyComponent}
       />
 
       <ExplorerFooter />

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {ScrollView, Text, View} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut, useReducedMotion} from 'react-native-reanimated';
 
 import type {AppLanguage} from '../../../core/types/locale';
 import type {SpecTabId, Vehicle} from '../../../domain/vehicle';
@@ -23,7 +23,7 @@ type SpecRowProps = {
   isArabic: boolean;
 };
 
-function SpecRow({label, value, isLast, language, isArabic}: SpecRowProps) {
+function SpecRowComponent({label, value, isLast, language, isArabic}: SpecRowProps) {
   return (
     <View
       style={[
@@ -50,6 +50,8 @@ function SpecRow({label, value, isLast, language, isArabic}: SpecRowProps) {
     </View>
   );
 }
+
+const SpecRow = memo(SpecRowComponent);
 
 export function SpecBoardSpecContent({
   vehicle,
@@ -86,7 +88,9 @@ export function SpecBoardSpecContent({
               style={withLocalizedTypography(styles.specEmptyText, language, {
                 textAlign: 'center',
               })}>
-              Specifications coming soon.
+              {isArabic
+                ? 'المواصفات قريباً.'
+                : 'Specifications coming soon.'}
             </Text>
           </View>
         )}

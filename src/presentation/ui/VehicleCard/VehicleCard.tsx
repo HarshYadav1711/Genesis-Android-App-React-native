@@ -1,6 +1,5 @@
-import React, {useState} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {
-  Image,
   Platform,
   Pressable,
   StyleSheet,
@@ -9,7 +8,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import Animated, {FadeInDown} from 'react-native-reanimated';
+import Animated, {FadeInDown, useReducedMotion} from 'react-native-reanimated';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
 import {useLanguage} from '../../../core/context';
@@ -17,6 +16,7 @@ import type {AppLanguage} from '../../../core/types/locale';
 import type {Vehicle} from '../../../domain/vehicle';
 import {withLocalizedTypography} from '../../i18n';
 import {colors} from '../../theme';
+import {VehicleImage} from '../VehicleImage';
 
 import {ElectricBoltIcon, ViewArrowIcon} from './VehicleCardIcons';
 import {
@@ -36,7 +36,7 @@ export type VehicleCardProps = {
   accessibilityLabel?: string;
 };
 
-function ImageGradientOverlay() {
+const ImageGradientOverlay = memo(function ImageGradientOverlay() {
   return (
     <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
       <Defs>
@@ -49,7 +49,7 @@ function ImageGradientOverlay() {
       <Rect width="100%" height="100%" fill="url(#vehicleCardFade)" />
     </Svg>
   );
-}
+});
 
 type VehicleCardBadgeProps = {
   badge: string;
@@ -57,7 +57,11 @@ type VehicleCardBadgeProps = {
   isArabic: boolean;
 };
 
-function VehicleCardBadge({badge, isElectric, isArabic}: VehicleCardBadgeProps) {
+const VehicleCardBadge = memo(function VehicleCardBadge({
+  badge,
+  isElectric,
+  isArabic,
+}: VehicleCardBadgeProps) {
   const tone = resolveBadgeTone(badge);
   const showBolt = isElectric && badge === 'Electric';
 
@@ -73,29 +77,25 @@ function VehicleCardBadge({badge, isElectric, isArabic}: VehicleCardBadgeProps) 
       <Text style={[styles.badgeLabel, {color: tone.color}]}>{badge}</Text>
     </View>
   );
-}
+});
 
 type VehicleCardImageProps = {
   vehicle: Vehicle;
   isArabic: boolean;
 };
 
-function VehicleCardImage({vehicle, isArabic}: VehicleCardImageProps) {
-  const [imageFailed, setImageFailed] = useState(false);
-
+const VehicleCardImage = memo(function VehicleCardImage({
+  vehicle,
+  isArabic,
+}: VehicleCardImageProps) {
   return (
     <View style={styles.imageWrap}>
-      {!imageFailed ? (
-        <Image
-          source={{uri: vehicle.image}}
-          style={styles.image}
-          resizeMode="cover"
-          accessibilityIgnoresInvertColors
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <View style={styles.imageFallback} />
-      )}
+      <VehicleImage
+        uri={vehicle.image}
+        style={styles.image}
+        fallbackStyle={styles.imageFallback}
+        accessibilityLabel={vehicle.name}
+      />
 
       {vehicle.badge ? (
         <VehicleCardBadge
@@ -108,7 +108,7 @@ function VehicleCardImage({vehicle, isArabic}: VehicleCardImageProps) {
       <ImageGradientOverlay />
     </View>
   );
-}
+});
 
 type VehicleCardContentProps = {
   vehicle: Vehicle;
@@ -116,8 +116,15 @@ type VehicleCardContentProps = {
   isArabic: boolean;
 };
 
-function VehicleCardContent({vehicle, language, isArabic}: VehicleCardContentProps) {
-  const highlights = vehicle.highlights.slice(0, 2);
+const VehicleCardContent = memo(function VehicleCardContent({
+  vehicle,
+  language,
+  isArabic,
+}: VehicleCardContentProps) {
+  const highlights = useMemo(
+    () => vehicle.highlights.slice(0, 2),
+    [vehicle.highlights],
+  );
 
   return (
     <View style={styles.content}>
@@ -184,9 +191,9 @@ function VehicleCardContent({vehicle, language, isArabic}: VehicleCardContentPro
       </View>
     </View>
   );
-}
+});
 
-export function VehicleCard({
+function VehicleCardComponent({
   vehicle,
   onPress,
   language: languageProp,
@@ -199,6 +206,11 @@ export function VehicleCard({
   const {language: contextLanguage} = useLanguage();
   const language = languageProp ?? contextLanguage;
   const isArabic = language === 'ar';
+  const reducedMotion = useReducedMotion();
+
+  const handlePress = useCallback(() => {
+    onPress(vehicle);
+  }, [onPress, vehicle]);
 
   const cardBody = (
     <Pressable
@@ -209,11 +221,8 @@ export function VehicleCard({
           ? {color: 'rgba(196, 149, 106, 0.16)', foreground: true}
           : undefined
       }
-      onPress={() => onPress(vehicle)}
-      style={({pressed}) => [
-        styles.card,
-        pressed && styles.cardPressed,
-      ]}>
+      onPress={handlePress}
+      style={({pressed}) => [styles.card, pressed && styles.cardPressed]}>
       <VehicleCardImage vehicle={vehicle} isArabic={isArabic} />
       <VehicleCardContent vehicle={vehicle} language={language} isArabic={isArabic} />
     </Pressable>
@@ -221,7 +230,7 @@ export function VehicleCard({
 
   const wrapStyle = [styles.cardWrap, {width}, style];
 
-  if (!animated) {
+  if (!animated || reducedMotion) {
     return <View style={wrapStyle}>{cardBody}</View>;
   }
 
@@ -235,3 +244,5 @@ export function VehicleCard({
     </Animated.View>
   );
 }
+
+export const VehicleCard = memo(VehicleCardComponent);

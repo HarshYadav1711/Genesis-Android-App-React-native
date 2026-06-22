@@ -12,6 +12,18 @@ export type {CardProps} from './Card';
 
 export {GenesisLogo} from './GenesisLogo';
 
+export {BackButton} from './BackButton';
+export type {BackButtonProps} from './BackButton';
+
+export {FloatingChatButton} from './FloatingChatButton';
+export type {FloatingChatButtonProps} from './FloatingChatButton';
+
+export {ScreenEnter} from './ScreenEnter';
+export type {ScreenEnterProps} from './ScreenEnter';
+
+export {VehicleImage} from './VehicleImage';
+export type {VehicleImageProps} from './VehicleImage';
+
 export {VehicleCard} from './VehicleCard';
 export type {VehicleCardProps} from './VehicleCard';
 export {

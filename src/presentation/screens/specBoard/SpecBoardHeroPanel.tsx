@@ -1,11 +1,12 @@
-import React, {useState} from 'react';
-import {Image, StyleSheet, Text, View} from 'react-native';
-import Animated, {FadeIn, FadeInDown} from 'react-native-reanimated';
+import React from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import Animated, {FadeIn, FadeInDown, useReducedMotion} from 'react-native-reanimated';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
 import type {AppLanguage} from '../../../core/types/locale';
 import type {Vehicle} from '../../../domain/vehicle';
 import {withLocalizedTypography} from '../../i18n';
+import {VehicleImage} from '../../ui/VehicleImage';
 import {colors} from '../../theme';
 
 import {ElectricLabelIcon} from './SpecBoardIcons';
@@ -46,8 +47,8 @@ export function SpecBoardHeroPanel({
   isArabic,
   isWideLayout,
 }: SpecBoardHeroPanelProps) {
-  const [imageFailed, setImageFailed] = useState(false);
   const highlights = vehicle.highlights.slice(0, 3);
+  const reducedMotion = useReducedMotion();
 
   return (
     <View
@@ -55,16 +56,12 @@ export function SpecBoardHeroPanel({
         styles.heroPanel,
         isWideLayout ? styles.heroPanelWide : styles.heroPanelNarrow,
       ]}>
-      {!imageFailed ? (
-        <Image
-          source={{uri: vehicle.image}}
-          style={styles.heroImage}
-          resizeMode="cover"
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <View style={styles.heroImageFallback} />
-      )}
+      <VehicleImage
+        uri={vehicle.image}
+        style={styles.heroImage}
+        fallbackStyle={styles.heroImageFallback}
+        accessibilityLabel={vehicle.name}
+      />
 
       <HeroGradients />
 
@@ -76,7 +73,11 @@ export function SpecBoardHeroPanel({
         {highlights.map((highlight, index) => (
           <Animated.View
             key={highlight}
-            entering={FadeIn.duration(400).delay(index * 100 + 300)}
+            entering={
+              reducedMotion
+                ? undefined
+                : FadeIn.duration(400).delay(index * 100 + 300)
+            }
             style={styles.highlightPill}>
             <Text
               style={withLocalizedTypography(styles.highlightText, language)}>
@@ -87,7 +88,7 @@ export function SpecBoardHeroPanel({
       </View>
 
       <Animated.View
-        entering={FadeInDown.duration(600)}
+        entering={reducedMotion ? undefined : FadeInDown.duration(600)}
         style={styles.heroInfo}>
         {vehicle.isElectric ? (
           <View style={[styles.electricRow, isArabic && styles.electricRowRtl]}>

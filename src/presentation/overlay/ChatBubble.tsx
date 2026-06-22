@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
 import type {AppLanguage} from '../../core/types/locale';
@@ -11,7 +11,7 @@ type ChatBubbleProps = {
   language: AppLanguage;
 };
 
-export function ChatBubble({message, language}: ChatBubbleProps) {
+export const ChatBubble = memo(function ChatBubble({message, language}: ChatBubbleProps) {
   const isUser = message.role === 'USER';
 
   return (
@@ -39,7 +39,7 @@ export function ChatBubble({message, language}: ChatBubbleProps) {
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   row: {
