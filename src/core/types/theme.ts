@@ -37,6 +37,12 @@ export type GenesisColorPalette = {
     readonly tasmanBlue: ColorToken;
     readonly barossaBurgundy: ColorToken;
     readonly dancheongOrange: ColorToken;
+    readonly copper: ColorToken;
+    readonly gold: ColorToken;
+    readonly silver: ColorToken;
+    readonly charcoal: ColorToken;
+    readonly black: ColorToken;
+    readonly border: ColorToken;
   };
   readonly semantic: {
     readonly success: ColorToken;

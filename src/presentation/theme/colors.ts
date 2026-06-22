@@ -44,6 +44,12 @@ export const colors: GenesisColorPalette = {
     tasmanBlue: '#1E3A5F',
     barossaBurgundy: '#4A1C28',
     dancheongOrange: '#E85D2C',
+    copper: '#C4956A',
+    gold: '#D4AF37',
+    silver: '#C0C0C0',
+    charcoal: '#1A1A1A',
+    black: '#0D0D0D',
+    border: '#2A2A2A',
   },
 
   semantic: {

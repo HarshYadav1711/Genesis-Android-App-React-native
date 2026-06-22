@@ -1,10 +1,10 @@
 import {AppProviders} from './src/app';
-import {ScreenContainer} from './src/presentation/ui';
+import {WelcomeScreen} from './src/presentation/screens';
 
 function App() {
   return (
     <AppProviders>
-      <ScreenContainer />
+      <WelcomeScreen />
     </AppProviders>
   );
 }
