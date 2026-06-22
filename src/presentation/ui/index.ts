@@ -14,6 +14,12 @@ export {GenesisLogo} from './GenesisLogo';
 
 export {VehicleCard} from './VehicleCard';
 export type {VehicleCardProps} from './VehicleCard';
+export {
+  ElectricBoltIcon,
+  ViewArrowIcon,
+  vehicleCardMetrics,
+  vehicleCardStyles,
+} from './VehicleCard/index';
 
 export {
   LanguageToggle,
