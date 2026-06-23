@@ -8,6 +8,7 @@
     "setup:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-windows.ps1",
     "ios": "react-native run-ios",
     "lint": "eslint .",
+    "dev": "react-native start",
     "start": "react-native start",
     "test": "jest",
     "postinstall": "node scripts/clean-ide-gradle.js"
